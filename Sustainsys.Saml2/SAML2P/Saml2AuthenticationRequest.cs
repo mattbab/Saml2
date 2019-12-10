@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.IdentityModel.Tokens.Saml2;
 using Sustainsys.Saml2.Configuration;
 using Sustainsys.Saml2.Internal;
 using Sustainsys.Saml2.WebSso;
@@ -52,6 +53,11 @@ namespace Sustainsys.Saml2.Saml2P
             if (ForceAuthentication)
             {
                 x.Add(new XAttribute("ForceAuthn", ForceAuthentication));
+            }
+
+            if (Subject != null && Subject.NameId != null && !string.IsNullOrEmpty(Subject.NameId.Value))
+            {
+                x.Add(Subject.ToXElement());
             }
 
             AddNameIdPolicy(x);
@@ -202,6 +208,11 @@ namespace Sustainsys.Saml2.Saml2P
         /// NameId policy.
         /// </summary>
         public Saml2NameIdPolicy NameIdPolicy { get; set; }
+
+        /// <summary>
+        /// The subject of the request which we expect to be authenticated.
+        /// </summary>
+        public Saml2Subject Subject { get; set; }
 
         /// <summary>
         /// RequestedAuthnContext.
