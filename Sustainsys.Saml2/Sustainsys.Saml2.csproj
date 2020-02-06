@@ -24,6 +24,7 @@
   <PropertyGroup>
     <NoWarn>1701;1702;1591</NoWarn>
     <Authors>Sustainsys</Authors>
+    <PackageId>TotalDefense.Saml2</PackageId>
   </PropertyGroup>
 
   <ItemGroup>

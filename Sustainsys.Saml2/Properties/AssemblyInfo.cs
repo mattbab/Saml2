@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyDescription("SAML2 Protocol library for ASP.NET. Don't reference this directly, use one of the API modules: Sustainsys.Saml2.HttpModule/Mvc/Owin/AspNetCore2.")]
+[assembly: AssemblyDescription("Fork of Sustainsys/Saml2 project adding support to include Subject in AuthnRequest.\r\n\r\nSAML2 Protocol library for ASP.NET. Don't reference this directly, use one of the API modules: Sustainsys.Saml2.HttpModule/Mvc/Owin/AspNetCore2.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

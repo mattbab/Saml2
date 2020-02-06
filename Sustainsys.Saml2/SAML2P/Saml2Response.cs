@@ -73,7 +73,7 @@ namespace Sustainsys.Saml2.Saml2P
         /// <param name="expectedInResponseTo">The expected value of the
         /// InReplyTo parameter in the message.</param>
         [ExcludeFromCodeCoverage] // Just a wrapper o keep backward compatibility
-        public Saml2Response(XmlElement xml, Saml2Id expectedInResponseTo): this(xml, expectedInResponseTo, null)
+        public Saml2Response(XmlElement xml, Saml2Id expectedInResponseTo) : this(xml, expectedInResponseTo, null)
         {
         }
 
@@ -144,6 +144,11 @@ namespace Sustainsys.Saml2.Saml2P
         [SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "RelayState")]
         private void ReadAndValidateInResponseTo(XmlElement xml, Saml2Id expectedInResponseTo, IOptions options)
         {
+            if (options?.SPOptions.Compatibility.IgnoreMissingInResponseTo ?? false)
+            {
+                return;
+            };
+
             var parsedInResponseTo = xml.Attributes["InResponseTo"].GetValueIfNotNull();
             if (parsedInResponseTo != null)
             {
@@ -167,11 +172,6 @@ namespace Sustainsys.Saml2.Saml2P
             }
             else
             {
-                if (options?.SPOptions.Compatibility.IgnoreMissingInResponseTo ?? false)
-                {
-                    return;
-                };
-
                 if (expectedInResponseTo != null)
                 {
                     throw new Saml2ResponseFailedValidationException(
@@ -477,7 +477,7 @@ namespace Sustainsys.Saml2.Saml2P
             {
                 if (idp.AllowUnsolicitedAuthnResponse)
                 {
-                    options.SPOptions.Logger.WriteVerbose("Received unsolicited Saml Response " + Id 
+                    options.SPOptions.Logger.WriteVerbose("Received unsolicited Saml Response " + Id
                         + " which is allowed for idp " + idp.EntityId.Id);
                     return;
                 }
@@ -493,7 +493,7 @@ namespace Sustainsys.Saml2.Saml2P
 
             var minAlgorithm = options.SPOptions.MinIncomingSigningAlgorithm;
 
-            if(!xmlElement.IsSignedByAny(idpKeys, options.SPOptions.ValidateCertificates, minAlgorithm)
+            if (!xmlElement.IsSignedByAny(idpKeys, options.SPOptions.ValidateCertificates, minAlgorithm)
                 && GetAllAssertionElementNodes(options)
                 .Any(a => !a.IsSignedByAny(idpKeys, options.SPOptions.ValidateCertificates, minAlgorithm)))
             {
@@ -518,7 +518,7 @@ namespace Sustainsys.Saml2.Saml2P
         {
             return GetClaims(options, null);
         }
-        
+
         /// <summary>
         /// Extract claims from the assertions contained in the response.
         /// </summary>
@@ -563,32 +563,32 @@ namespace Sustainsys.Saml2.Saml2P
                     status, statusMessage, secondLevelStatus);
             }
 
-			TokenValidationParameters validationParameters = new TokenValidationParameters();
-			validationParameters.AuthenticationType = "Federation";
-			validationParameters.RequireSignedTokens = false;
-			validationParameters.ValidateIssuer = false;
+            TokenValidationParameters validationParameters = new TokenValidationParameters();
+            validationParameters.AuthenticationType = "Federation";
+            validationParameters.RequireSignedTokens = false;
+            validationParameters.ValidateIssuer = false;
             validationParameters.ValidAudience = options.SPOptions.EntityId.Id;
 
-			var handler = options.SPOptions.Saml2PSecurityTokenHandler;
+            var handler = options.SPOptions.Saml2PSecurityTokenHandler;
 
-			foreach (XmlElement assertionNode in GetAllAssertionElementNodes(options))
+            foreach (XmlElement assertionNode in GetAllAssertionElementNodes(options))
             {
-				SecurityToken baseToken;
+                SecurityToken baseToken;
                 var principal = handler.ValidateToken(assertionNode.OuterXml, validationParameters, out baseToken);
-				var token = (Saml2SecurityToken)baseToken;
+                var token = (Saml2SecurityToken)baseToken;
                 options.SPOptions.Logger.WriteVerbose("Extracted SAML assertion " + token.Id);
 
-				sessionNotOnOrAfter = DateTimeHelper.EarliestTime(sessionNotOnOrAfter,
-					token.Assertion.Statements.OfType<Saml2AuthenticationStatement>()
-						.SingleOrDefault()?.SessionNotOnOrAfter);
+                sessionNotOnOrAfter = DateTimeHelper.EarliestTime(sessionNotOnOrAfter,
+                    token.Assertion.Statements.OfType<Saml2AuthenticationStatement>()
+                        .SingleOrDefault()?.SessionNotOnOrAfter);
 
-				foreach (var identity in principal.Identities)
-				{
-					yield return identity;
-				}
+                foreach (var identity in principal.Identities)
+                {
+                    yield return identity;
+                }
             }
         }
-        
+
         /// <summary>
         /// RelayState attached to the message.
         /// </summary>
@@ -606,7 +606,7 @@ namespace Sustainsys.Saml2.Saml2P
         {
             get
             {
-                if(claimsIdentities == null)
+                if (claimsIdentities == null)
                 {
                     // This is not a good design, but will have to do for now.
                     // The entire Saml2Response class needs some refactoring
