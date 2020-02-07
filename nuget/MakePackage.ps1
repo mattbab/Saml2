@@ -24,18 +24,6 @@ if (Test-Path "Sustainsys.Saml2\bin\Release")
 {
 	del Sustainsys.Saml2\bin\Release\*.dll
 }
-if (Test-Path "Sustainsys.Saml2.Mvc\bin\Release")
-{
-	del Sustainsys.Saml2.Mvc\bin\Release\*.dll
-}
-if (Test-Path "Sustainsys.Saml2.Owin\bin\Release")
-{
-	del Sustainsys.Saml2.Owin\bin\Release\*.dll
-}
-if (Test-Path "Sustainsys.Saml2.HttpModule\bin\Release")
-{
-	del Sustainsys.Saml2.HttpModule\bin\Release\*.dll
-}
 if (Test-Path "Sustainsys.Saml2.AspNetCore2\bin\Release")
 {
 	del Sustainsys.Saml2.AspNetCore2\bin\Release\*.dll

@@ -7,7 +7,6 @@ using System.Web;
 using IdentityServer3.Core.Services.InMemory;
 using Microsoft.Owin;
 using IdentityServer3.Core.Models;
-using Sustainsys.Saml2.Owin;
 using Sustainsys.Saml2.Configuration;
 using Sustainsys.Saml2;
 using Sustainsys.Saml2.Metadata;

@@ -25,26 +25,21 @@ namespace Sustainsys.Saml2.AspNetCore2
         HttpContext context;
         private readonly IDataProtector dataProtector;
         private readonly IOptionsFactory<Saml2Options> optionsFactory;
+        private readonly IRequestStateStore requestStateStore;
 
         /// <summary>
         /// Ctor
         /// </summary>
         /// <param name="optionsCache">Options</param>
-        /// <param name="dataProtectorProvider">Data Protector Provider</param>
         /// <param name="optionsFactory">Factory for options</param>
+        /// <param name="requestStateStore">Storage for request state</param>
         public Saml2Handler(
             IOptionsMonitorCache<Saml2Options> optionsCache,
-            IDataProtectionProvider dataProtectorProvider,
-            IOptionsFactory<Saml2Options> optionsFactory)
+            IOptionsFactory<Saml2Options> optionsFactory,
+            IRequestStateStore requestStateStore)
         {
-            if (dataProtectorProvider == null)
-            {
-                throw new ArgumentNullException(nameof(dataProtectorProvider));
-            }
-
-            dataProtector = dataProtectorProvider.CreateProtector(GetType().FullName);
-
             this.optionsFactory = optionsFactory;
+            this.requestStateStore = requestStateStore;
             this.optionsCache = optionsCache;
         }
 
@@ -100,7 +95,7 @@ namespace Sustainsys.Saml2.AspNetCore2
                 options,
                 properties.Items);
 
-            await result.Apply(context, dataProtector, null, null);
+            await result.Apply(context, this.requestStateStore, null, null);
         }
 
         /// <InheritDoc />
@@ -119,9 +114,9 @@ namespace Sustainsys.Saml2.AspNetCore2
                     options.SPOptions.ModulePath.Length).TrimStart('/');
 
                 var commandResult = CommandFactory.GetCommand(commandName).Run(
-                    context.ToHttpRequestData(dataProtector.Unprotect), options);
+                    context.ToHttpRequestData(this.requestStateStore), options);
 
-                await commandResult.Apply(context, dataProtector, options.SignInScheme, options.SignOutScheme);
+                await commandResult.Apply(context, requestStateStore, options.SignInScheme, options.SignOutScheme);
 
                 return true;
             }
@@ -142,13 +137,13 @@ namespace Sustainsys.Saml2.AspNetCore2
             }
 
             await LogoutCommand.InitiateLogout(
-                context.ToHttpRequestData(dataProtector.Unprotect),
+                context.ToHttpRequestData(requestStateStore),
                 new Uri(properties.RedirectUri, UriKind.RelativeOrAbsolute),
                 options,
                 // In the Asp.Net Core2 model, it's the caller's responsibility to terminate the
                 // local session on an SP-initiated logout.
                 terminateLocalSession: false)
-                .Apply(context, dataProtector, null, null);
+                .Apply(context, requestStateStore, null, null);
         }
     }
 }

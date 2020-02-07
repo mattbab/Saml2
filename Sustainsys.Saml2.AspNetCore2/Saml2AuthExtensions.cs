@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using System;
+
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+
+using Sustainsys.Saml2;
 using Sustainsys.Saml2.AspNetCore2;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -75,6 +74,8 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             builder.Services.AddTransient<Saml2Handler>();
+
+            builder.Services.AddSingleton<IRequestStateStore, CookieRequestStateStore>();
 
             return builder;
         }

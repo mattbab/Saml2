@@ -1,14 +1,10 @@
-﻿using Sustainsys.Saml2.Internal;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
 using System.Security.Claims;
+
+using Sustainsys.Saml2.Internal;
 
 namespace Sustainsys.Saml2.WebSso
 {
@@ -25,9 +21,7 @@ namespace Sustainsys.Saml2.WebSso
         /// <param name="url">Full url requested</param>
         /// <param name="formData">Form data, if present (only for POST requests)</param>
         /// <param name="applicationPath">Path to the application root</param>
-        /// <param name="cookies">Cookies of request</param>
-        /// <param name="cookieDecryptor">Function that decrypts cookie
-        /// contents to clear text.</param>
+        /// <param name="requestStateStore">Storage for request state</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Decryptor")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures")]
         public HttpRequestData(
@@ -35,8 +29,8 @@ namespace Sustainsys.Saml2.WebSso
             Uri url,
             string applicationPath,
             IEnumerable<KeyValuePair<string, IEnumerable<string>>> formData,
-            IEnumerable<KeyValuePair<string, string>> cookies,
-            Func<byte[], byte[]> cookieDecryptor) : this(httpMethod, url, applicationPath, formData, cookies, cookieDecryptor, user: null)
+            IRequestStateStore requestStateStore)
+            : this(httpMethod, url, applicationPath, formData, requestStateStore, user: null)
         {
             // empty
         }
@@ -48,9 +42,7 @@ namespace Sustainsys.Saml2.WebSso
         /// <param name="url">Full url requested</param>
         /// <param name="formData">Form data, if present (only for POST requests)</param>
         /// <param name="applicationPath">Path to the application root</param>
-        /// <param name="cookies">Cookies of request</param>
-        /// <param name="cookieDecryptor">Function that decrypts cookie
-        /// contents to clear text.</param>
+        /// <param name="requestStateStore">Storage for request state</param>
         /// <param name="user">Claims Principal associated with the request</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Decryptor")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures")]
@@ -59,17 +51,16 @@ namespace Sustainsys.Saml2.WebSso
             Uri url,
             string applicationPath,
             IEnumerable<KeyValuePair<string, IEnumerable<string>>> formData,
-            IEnumerable<KeyValuePair<string, string>> cookies,
-            Func<byte[], byte[]> cookieDecryptor,
+            IRequestStateStore requestStateStore,
             ClaimsPrincipal user)
         {
-            Init(httpMethod, url, applicationPath, formData, cookies, cookieDecryptor, user);
+            Init(httpMethod, url, applicationPath, formData, requestStateStore, user);
         }
 
         // Used by tests.
         internal HttpRequestData(string httpMethod, Uri url)
         {
-            Init(httpMethod, url, "/", null, Enumerable.Empty<KeyValuePair<string, string>>(), null, null);
+            Init(httpMethod, url, "/", null, null, null);
         }
 
         // Used by tests.
@@ -89,8 +80,7 @@ namespace Sustainsys.Saml2.WebSso
             Uri url,
             string applicationPath,
             IEnumerable<KeyValuePair<string, IEnumerable<string>>> formData,
-            IEnumerable<KeyValuePair<string, string>> cookies,
-            Func<byte[], byte[]> cookieDecryptor,
+            IRequestStateStore requestStateStore,
             ClaimsPrincipal user)
         {
             InitBasicFields(httpMethod, url, applicationPath, formData);
@@ -106,15 +96,8 @@ namespace Sustainsys.Saml2.WebSso
             if (relayState != null)
             {
                 var cookieName = StoredRequestState.CookieNameBase + relayState;
-                if (cookies.Any(c => c.Key == cookieName))
-                {
-                    var cookieData = cookies.SingleOrDefault(c => c.Key == cookieName).Value;
-                    byte[] encryptedData = GetBinaryData(cookieData);
 
-                    var decryptedData = cookieDecryptor(encryptedData);
-
-                    StoredRequestState = new StoredRequestState(decryptedData);
-                }
+                StoredRequestState = requestStateStore.GetState(cookieName);
             }
         }
 

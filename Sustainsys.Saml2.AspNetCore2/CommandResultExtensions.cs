@@ -1,10 +1,10 @@
-﻿using Sustainsys.Saml2.WebSso;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Text;
+﻿using System.Text;
 using System.Threading.Tasks;
+
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+
+using Sustainsys.Saml2.WebSso;
 
 namespace Sustainsys.Saml2.AspNetCore2
 {
@@ -13,7 +13,7 @@ namespace Sustainsys.Saml2.AspNetCore2
         public static async Task Apply(
             this CommandResult commandResult,
             HttpContext httpContext,
-            IDataProtector dataProtector,
+            IRequestStateStore requestStateStore,
             string signInScheme,
             string signOutScheme)
         {
@@ -26,20 +26,7 @@ namespace Sustainsys.Saml2.AspNetCore2
 
             if(!string.IsNullOrEmpty(commandResult.SetCookieName))
             {
-                var cookieData = HttpRequestData.ConvertBinaryData(
-                    dataProtector.Protect(commandResult.GetSerializedRequestState()));
-
-                httpContext.Response.Cookies.Append(
-                    commandResult.SetCookieName,
-                    cookieData,
-                    new CookieOptions()
-                    {
-                        HttpOnly = true,
-                        // We are expecting a different site to POST back to us,
-                        // so the ASP.Net Core default of Lax is not appropriate in this case
-                        SameSite = SameSiteMode.None,
-                        IsEssential = true
-                    });
+                requestStateStore?.SetState(commandResult.SetCookieName, commandResult.RequestState);
             }
 
             foreach(var h in commandResult.Headers)

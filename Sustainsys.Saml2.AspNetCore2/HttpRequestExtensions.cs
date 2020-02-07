@@ -11,7 +11,7 @@ namespace Sustainsys.Saml2.AspNetCore2
     {
         public static HttpRequestData ToHttpRequestData(
             this HttpContext httpContext,
-            Func<byte[], byte[]> cookieDecryptor)
+            IRequestStateStore requestStateStore)
         {
             var request = httpContext.Request;
 
@@ -36,8 +36,7 @@ namespace Sustainsys.Saml2.AspNetCore2
                 uri,
                 pathBase,
                 formData,
-                request.Cookies,
-                cookieDecryptor,
+                requestStateStore,
                 httpContext.User);
         }
     }
