@@ -75,7 +75,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             builder.Services.AddTransient<Saml2Handler>();
 
-            builder.Services.AddSingleton<IRequestStateStore, CookieRequestStateStore>();
+            builder.Services.TryAddSingleton<IRequestStateStore, CookieRequestStateStore>();
 
             return builder;
         }
